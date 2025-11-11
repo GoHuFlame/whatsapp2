@@ -1,40 +1,62 @@
 <?php
 
 $urlApi = "https://morakz.com/api/text";
-$tokenApi = getenv('WHATSAPP_API_TOKEN');
+$tokenApi = getenv('WHATSAPP_API_TOKEN'); 
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $numero = trim($_POST["numero"]);
     $mensaje = trim($_POST["mensaje"]);
-    $numeroCompleto = "521" . $numero;
 
-    $datosEnvio = [
-        "to" => $numeroCompleto,
-        "body" => $mensaje
-    ];
+    if (!preg_match('/^[0-9]{10}$/', $numero)) {
+        $resultado = "<p style='color:red; text-align:center;'>❌ El número debe tener exactamente 10 dígitos (solo números).</p>";
+    } elseif (empty($mensaje)) {
+        $resultado = "<p style='color:red; text-align:center;'>❌ Debes escribir un mensaje.</p>";
+    } else {
+        $numeroCompleto = "521" . $numero;
 
-    $solicitudCurl = curl_init($urlApi);
-    curl_setopt($solicitudCurl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($solicitudCurl, CURLOPT_POST, true);
-    curl_setopt($solicitudCurl, CURLOPT_POSTFIELDS, json_encode($datosEnvio));
-    curl_setopt($solicitudCurl, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $tokenApi",
-        "Content-Type: application/json"
-    ]);
+        $datosEnvio = [
+            "to" => $numeroCompleto,
+            "body" => $mensaje
+        ];
 
-    curl_setopt($solicitudCurl, CURLOPT_SSL_VERIFYPEER, true);
-    curl_setopt($solicitudCurl, CURLOPT_SSL_VERIFYHOST, 2);
-    curl_setopt($solicitudCurl, CURLOPT_TIMEOUT, 30);
-    curl_setopt($solicitudCurl, CURLOPT_CONNECTTIMEOUT, 10);
-    curl_setopt($solicitudCurl, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($solicitudCurl, CURLOPT_MAXREDIRS, 3);
+        $solicitudCurl = curl_init($urlApi);
+        curl_setopt($solicitudCurl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($solicitudCurl, CURLOPT_POST, true);
+        curl_setopt($solicitudCurl, CURLOPT_POSTFIELDS, json_encode($datosEnvio));
+        curl_setopt($solicitudCurl, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer $tokenApi",
+            "Content-Type: application/json",
+            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        ]);
+        curl_setopt($solicitudCurl, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($solicitudCurl, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($solicitudCurl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($solicitudCurl, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($solicitudCurl, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($solicitudCurl, CURLOPT_MAXREDIRS, 3);
 
-    $respuesta = curl_exec($solicitudCurl);
-    $errorCurl = curl_error($solicitudCurl);
-    $codigoHttp = curl_getinfo($solicitudCurl, CURLINFO_HTTP_CODE);
-    curl_close($solicitudCurl);
+        $respuesta = curl_exec($solicitudCurl);
+        $errorCurl = curl_error($solicitudCurl);
+        $codigoHttp = curl_getinfo($solicitudCurl, CURLINFO_HTTP_CODE);
+        curl_close($solicitudCurl);
 
-    $resultado = "<p style='color:green; text-align:center;'>✅ Mensaje enviado.</p>";
+        if ($errorCurl) {
+            $resultado = "<p style='color:red; text-align:center;'>❌ Error de conexión: " . htmlspecialchars($errorCurl) . "</p>";
+        } elseif ($codigoHttp == 200 || $codigoHttp == 201) {
+            $resultado = "<p style='color:green; text-align:center;'>✅ Mensaje enviado correctamente.</p>";
+        } else {
+            $detalleError = "";
+            if ($codigoHttp == 403) {
+                $detalleError = " (Acceso denegado - verifica el token de API)";
+            } elseif ($codigoHttp == 401) {
+                $detalleError = " (No autorizado - token inválido)";
+            }
+            $resultado = "<p style='color:red; text-align:center;'>❌ Error al enviar mensaje. Código HTTP: $codigoHttp$detalleError</p>";
+            if ($respuesta) {
+                $resultado .= "<p style='color:red; text-align:center; font-size:12px;'>Respuesta: " . htmlspecialchars(substr($respuesta, 0, 200)) . "</p>";
+            }
+        }
+    }
 }
 ?>
 
