@@ -1,7 +1,8 @@
 <?php
 
 $urlApi = "https://morakz.com/api/text";
-$tokenApi = getenv('WHATSAPP_API_TOKEN'); 
+// Usar variable de entorno si está disponible, sino usar el token por defecto
+$tokenApi = getenv('WHATSAPP_API_TOKEN') ?: "mkuzfO8C0CXeE68ziJ4Rm0EwvaH49Ajh"; 
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $numero = trim($_POST["numero"]);
