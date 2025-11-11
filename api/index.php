@@ -20,10 +20,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     curl_setopt($solicitudCurl, CURLOPT_HTTPHEADER, [
         "Authorization: Bearer $tokenApi",
         "Content-Type: application/json"
-        "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
     ]);
 
-    curl_exec($solicitudCurl);
+    curl_setopt($solicitudCurl, CURLOPT_SSL_VERIFYPEER, true);
+    curl_setopt($solicitudCurl, CURLOPT_SSL_VERIFYHOST, 2);
+    curl_setopt($solicitudCurl, CURLOPT_TIMEOUT, 30);
+    curl_setopt($solicitudCurl, CURLOPT_CONNECTTIMEOUT, 10);
+    curl_setopt($solicitudCurl, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($solicitudCurl, CURLOPT_MAXREDIRS, 3);
+
+    $respuesta = curl_exec($solicitudCurl);
+    $errorCurl = curl_error($solicitudCurl);
+    $codigoHttp = curl_getinfo($solicitudCurl, CURLINFO_HTTP_CODE);
     curl_close($solicitudCurl);
 
     $resultado = "<p style='color:green; text-align:center;'>✅ Mensaje enviado.</p>";
