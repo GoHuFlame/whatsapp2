@@ -26,7 +26,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         curl_setopt($solicitudCurl, CURLOPT_HTTPHEADER, [
             "Authorization: Bearer $tokenApi",
             "Content-Type: application/json",
-            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         ]);
         curl_setopt($solicitudCurl, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($solicitudCurl, CURLOPT_SSL_VERIFYHOST, 2);
@@ -44,17 +43,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $resultado = "<p style='color:red; text-align:center;'>❌ Error de conexión: " . htmlspecialchars($errorCurl) . "</p>";
         } elseif ($codigoHttp == 200 || $codigoHttp == 201) {
             $resultado = "<p style='color:green; text-align:center;'>✅ Mensaje enviado correctamente.</p>";
-        } else {
-            $detalleError = "";
-            if ($codigoHttp == 403) {
-                $detalleError = " (Acceso denegado - verifica el token de API)";
-            } elseif ($codigoHttp == 401) {
-                $detalleError = " (No autorizado - token inválido)";
-            }
-            $resultado = "<p style='color:red; text-align:center;'>❌ Error al enviar mensaje. Código HTTP: $codigoHttp$detalleError</p>";
-            if ($respuesta) {
-                $resultado .= "<p style='color:red; text-align:center; font-size:12px;'>Respuesta: " . htmlspecialchars(substr($respuesta, 0, 200)) . "</p>";
-            }
         }
     }
 }
