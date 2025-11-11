@@ -1,129 +1,141 @@
 <?php
-$urlApi = "https://morakz.com/api/text";
+
+$apiUrl = "https://morakz.com/api/text";
 $token = "mkuzfO8C0CXeE68ziJ4Rm0EwvaH49Ajh"; 
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    header('Content-Type: application/json');
-    
-    $numero = trim($_POST["numero"] ?? "");
-    $mensaje = trim($_POST["mensaje"] ?? "");
+    $numero = trim($_POST["numero"]);
+    $mensaje = trim($_POST["mensaje"]);
 
     if (!preg_match('/^[0-9]{10}$/', $numero)) {
-        http_response_code(400);
-        echo json_encode([
-            "exito" => false,
-            "mensaje" => "El número debe tener exactamente 10 dígitos."
-        ]);
-        exit;
-    }
-    
-    if (empty($mensaje)) {
-        http_response_code(400);
-        echo json_encode([
-            "exito" => false,
-            "mensaje" => "Debes escribir un mensaje."
-        ]);
-        exit;
-    }
-
-    $numeroCompleto = "521" . $numero;
-
-    $datos = [
-        "to" => $numeroCompleto,
-        "body" => $mensaje
-    ];
-
-    $ch = curl_init($urlApi);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($datos));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer $token",
-        "Content-Type: application/json"
-    ]);
-
-    $respuesta = curl_exec($ch);
-    $codigoHttp = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($codigoHttp == 200 || $codigoHttp == 201) {
-        echo json_encode([
-            "exito" => true,
-            "mensaje" => "Mensaje enviado correctamente."
-        ]);
+        $resultado = "<p style='color:red; text-align:center;'>❌ El número debe tener exactamente 10 dígitos (solo números).</p>";
+    } elseif (empty($mensaje)) {
+        $resultado = "<p style='color:red; text-align:center;'>❌ Debes escribir un mensaje.</p>";
     } else {
-        http_response_code($codigoHttp);
-        echo json_encode([
-            "exito" => false,
-            "mensaje" => "Error al enviar mensaje. Código HTTP: $codigoHttp"
+        $numeroCompleto = "521" . $numero;
+
+        $payload = [
+            "to" => $numeroCompleto,
+            "body" => $mensaje
+        ];
+
+        $ch = curl_init($apiUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer $token",
+            "Content-Type: application/json"
         ]);
+
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($http_code == 200 || $http_code == 201) {
+            $resultado = "<p style='color:green; text-align:center;'>✅ Mensaje enviado correctamente.</p>";
+        } else {
+            $resultado = "<p style='color:red; text-align:center;'>❌ Error al enviar mensaje. Código HTTP: $http_code</p>";
+        }
     }
-} else {
-    // Servir HTML para GET
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Enviar WhatsApp</title>
-<link rel="stylesheet" href="/api/estilos.css">
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: #f3f4f6;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .container {
+        background: #ffffff;
+        padding: 30px 35px;
+        border-radius: 10px;
+        width: 380px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        text-align: center;
+    }
+
+    h2 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    label {
+        font-weight: bold;
+        text-align: left;
+        margin-top: 12px;
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 6px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+        resize: none;
+        transition: border-color 0.3s;
+    }
+
+    input:focus, textarea:focus {
+        border-color: #25D366;
+        outline: none;
+    }
+
+    button {
+        background: #25D366;
+        color: white;
+        border: none;
+        padding: 12px;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 16px;
+        margin-top: 18px;
+        transition: background 0.3s ease;
+    }
+
+    button:hover {
+        background: #1ebe5d;
+    }
+</style>
 </head>
 <body>
 
-<div class="contenedor">
+<div class="container">
     <h2>Enviar mensaje WhatsApp</h2>
-    <form id="formularioMensaje" method="POST">
+    <form method="POST">
         <label>Número</label>
-        <input type="text" name="numero" id="numero" maxlength="10" pattern="[0-9]{10}" required>
+        <input type="text" name="numero" maxlength="10" pattern="[0-9]{10}" required>
 
         <label>Mensaje</label>
-        <textarea name="mensaje" id="mensaje" rows="4" required></textarea>
+        <textarea name="mensaje" rows="4" required></textarea>
 
         <button type="submit">Enviar mensaje</button>
     </form>
 
-    <div id="resultado" class="resultado"></div>
+    <?php if (isset($resultado)) echo "<div style='margin-top:20px;'>$resultado</div>"; ?>
 </div>
-
-<script>
-document.getElementById('formularioMensaje').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const resultadoDiv = document.getElementById('resultado');
-    const numero = document.getElementById('numero').value.trim();
-    const mensaje = document.getElementById('mensaje').value.trim();
-    
-    resultadoDiv.innerHTML = '<p style="text-align:center; color:#666;">⏳ Enviando...</p>';
-    
-    try {
-        const formData = new FormData();
-        formData.append('numero', numero);
-        formData.append('mensaje', mensaje);
-        
-        const respuesta = await fetch('', {
-            method: 'POST',
-            body: formData
-        });
-        
-        const datos = await respuesta.json();
-        
-        if (datos.exito) {
-            resultadoDiv.innerHTML = `<p class="mensaje-exito">✅ ${datos.mensaje}</p>`;
-            document.getElementById('formularioMensaje').reset();
-        } else {
-            resultadoDiv.innerHTML = `<p class="mensaje-error">❌ ${datos.mensaje}</p>`;
-        }
-    } catch (error) {
-        resultadoDiv.innerHTML = `<p class="mensaje-error">❌ Error de conexión. Por favor, intenta nuevamente.</p>`;
-        console.error('Error:', error);
-    }
-});
-</script>
 
 </body>
 </html>
-<?php
-}
-?>
-
