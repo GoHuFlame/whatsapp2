@@ -41,8 +41,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($errorCurl) {
             $resultado = "<p style='color:red; text-align:center;'>❌ Error de conexión: " . htmlspecialchars($errorCurl) . "</p>";
-        } else ($codigoHttp == 200 || $codigoHttp == 201) {
+        } elseif ($codigoHttp == 200 || $codigoHttp == 201) {
             $resultado = "<p style='color:green; text-align:center;'>✅ Mensaje enviado correctamente.</p>";
+        } else {
+            $detalleError = "";
+            if ($codigoHttp == 403) {
+                $detalleError = " (Acceso denegado - verifica el token de API)";
+            } elseif ($codigoHttp == 401) {
+                $detalleError = " (No autorizado - token inválido)";
+            }
+            $resultado = "<p style='color:red; text-align:center;'>❌ Error al enviar mensaje. Código HTTP: $codigoHttp$detalleError</p>";
+            if ($respuesta) {
+                $resultado .= "<p style='color:red; text-align:center; font-size:12px;'>Respuesta: " . htmlspecialchars(substr($respuesta, 0, 200)) . "</p>";
+            }
         }
     }
 }
