@@ -1,7 +1,7 @@
 <?php
 
 $apiUrl = "https://morakz.com/api/text";
-$token = "mkuzfO8C0CXeE68ziJ4Rm0EwvaH49Ajh"; 
+$token = getenv('WHATSAPP_API_TOKEN'); 
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $numero = trim($_POST["numero"]);
@@ -25,17 +25,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "Authorization: Bearer $token",
-            "Content-Type: application/json"
+            "Content-Type: application/json",
+            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         ]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
 
         $response = curl_exec($ch);
+        $curl_error = curl_error($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($http_code == 200 || $http_code == 201) {
+        if ($curl_error) {
+            $resultado = "<p style='color:red; text-align:center;'>❌ Error de conexión: " . htmlspecialchars($curl_error) . "</p>";
+        } elseif ($http_code == 200 || $http_code == 201) {
             $resultado = "<p style='color:green; text-align:center;'>✅ Mensaje enviado correctamente.</p>";
         } else {
-            $resultado = "<p style='color:red; text-align:center;'>❌ Error al enviar mensaje. Código HTTP: $http_code</p>";
+            $error_detail = "";
+            if ($http_code == 403) {
+                $error_detail = " (Acceso denegado - verifica el token de API)";
+            } elseif ($http_code == 401) {
+                $error_detail = " (No autorizado - token inválido)";
+            }
+            $resultado = "<p style='color:red; text-align:center;'>❌ Error al enviar mensaje. Código HTTP: $http_code$error_detail</p>";
+            if ($response) {
+                $resultado .= "<p style='color:red; text-align:center; font-size:12px;'>Respuesta: " . htmlspecialchars(substr($response, 0, 200)) . "</p>";
+            }
         }
     }
 }
