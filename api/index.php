@@ -31,7 +31,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         curl_setopt($solicitudCurl, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($solicitudCurl, CURLOPT_TIMEOUT, 30);
         curl_setopt($solicitudCurl, CURLOPT_CONNECTTIMEOUT, 10);
-
+        curl_setopt($solicitudCurl, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($solicitudCurl, CURLOPT_MAXREDIRS, 3);
+        
         $respuesta = curl_exec($solicitudCurl);
         $errorCurl = curl_error($solicitudCurl);
         $codigoHttp = curl_getinfo($solicitudCurl, CURLINFO_HTTP_CODE);
