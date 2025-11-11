@@ -1,41 +1,41 @@
 <?php
 
-$apiUrl = "https://morakz.com/api/text";
-$token = getenv('WHATSAPP_API_TOKEN'); 
+$urlApi = "https://morakz.com/api/text";
+$token = getenv('WHATSAPP_API'); 
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $numero = trim($_POST["numero"]);
     $mensaje = trim($_POST["mensaje"]);
 
     if (!preg_match('/^[0-9]{10}$/', $numero)) {
-        $resultado = "<p style='color:red; text-align:center;'>❌ El número debe tener exactamente 10 dígitos (solo números).</p>";
+        $resultado = "<p style='color:red; text-align:center;'>❌ El número debe tener exactamente 10 dígitos.</p>";
     } elseif (empty($mensaje)) {
         $resultado = "<p style='color:red; text-align:center;'>❌ Debes escribir un mensaje.</p>";
     } else {
         $numeroCompleto = "521" . $numero;
 
-        $payload = [
+        $datos = [
             "to" => $numeroCompleto,
             "body" => $mensaje
         ];
 
-        $ch = curl_init($apiUrl);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        $curl = curl_init($urlApi);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($datos));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, [
             "Authorization: Bearer $token",
             "Content-Type: application/json"
         ]);
 
-        $response = curl_exec($ch);
-        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
+        $respuesta = curl_exec($curl);
+        $codigoHttp = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
 
-        if ($http_code == 200 || $http_code == 201) {
+        if ($codigoHttp == 200 || $codigoHttp == 201) {
             $resultado = "<p style='color:green; text-align:center;'>✅ Mensaje enviado correctamente.</p>";
         } else {
-            $resultado = "<p style='color:red; text-align:center;'>❌ Error al enviar mensaje. Código HTTP: $http_code</p>";
+            $resultado = "<p style='color:red; text-align:center;'>❌ Error al enviar mensaje. Código HTTP: $codigoHttp</p>";
         }
     }
 }
