@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($errorCurl) {
             $resultado = "<p style='color:red; text-align:center;'>❌ Error de conexión: " . htmlspecialchars($errorCurl) . "</p>";
-        } elseif ($codigoHttp == 200 || $codigoHttp == 201) {
+        } else ($codigoHttp == 200 || $codigoHttp == 201) {
             $resultado = "<p style='color:green; text-align:center;'>✅ Mensaje enviado correctamente.</p>";
         }
     }
