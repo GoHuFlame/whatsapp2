@@ -17,10 +17,6 @@
       "dest": "/api/index.php"
     },
     {
-      "source": "/styles.css",
-      "destination": "/api/styles.css"
-    },
-    {
       "src": "/(.*)",
       "dest": "/api/index.php"
     }
