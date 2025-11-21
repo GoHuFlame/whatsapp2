@@ -1,6 +1,5 @@
 <?php
 
-// Obtener variables de entorno de Vercel
 $apiUrl = getenv('API_URL') ?: $_ENV['API_URL'] ?? "https://morakz.com/api/text";
 $token = getenv('TOKEN') ?: $_ENV['TOKEN'] ?? ""; 
 
